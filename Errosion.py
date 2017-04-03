@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 import vigra.filters as fil
+import vigra
 import copy
 import pickle
 
@@ -95,6 +96,23 @@ if __name__ == "__main__":
     with open("/media/axeleik/EA62ECB562EC8821/data/False_merges.pkl", mode='w') as f:
         pickle.dump(Zu_klein_gt, f)
 
+
+
+
+ general_obj_mask_z = np.concatenate(
+        [vigra.analysis.regionImageToEdgeImage(original_seg[:, :, z])[:, :, None] for z in xrange(original_seg.shape[2])],
+        axis=2
+    )
+    general_obj_mask_y = np.concatenate(
+        [vigra.analysis.regionImageToEdgeImage(original_seg[:, y, :])[:, None, :] for y in xrange(original_seg.shape[1])],
+        axis=1
+    )
+    general_obj_mask = copy.deepcopy(original_seg)
+    general_obj_mask[general_obj_mask_y == 1] = 0
+    general_obj_mask[general_obj_mask_z == 1] = 0
+    eroded_general_obj_mask = vigra.filters.discErosion(general_obj_mask.astype(np.uint8), 10)
+    # FIXME hack to make the discErosion capable of uint>8
+    general_obj_mask[eroded_general_obj_mask == 0] = 0
 
 
 
